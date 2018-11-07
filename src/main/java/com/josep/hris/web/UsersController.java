@@ -1,6 +1,7 @@
 package com.josep.hris.web;
 
 import com.josep.hris.bean.form.RegistrationForm;
+import com.josep.hris.service.AuthService;
 import com.josep.hris.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -20,6 +21,7 @@ public class UsersController {
 
     @Autowired
     private UserService userService;
+
 
     @GetMapping("/registration")
     public String registration(Model model)
