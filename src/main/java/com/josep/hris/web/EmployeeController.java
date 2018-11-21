@@ -4,6 +4,14 @@ import com.josep.hris.entity.Employee;
 import com.josep.hris.helpers.Paginate;
 import com.josep.hris.repository.EmployeePagingRepository;
 import com.josep.hris.service.AuthService;
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.export.JRPdfExporter;
+import net.sf.jasperreports.engine.util.JRLoader;
+import net.sf.jasperreports.export.SimpleExporterInput;
+import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
+import net.sf.jasperreports.export.SimplePdfExporterConfiguration;
+import net.sf.jasperreports.export.SimplePdfReportConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,6 +22,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.io.File;
+import java.io.InputStream;
 import java.security.Principal;
 
 @Controller
@@ -55,5 +65,39 @@ public class EmployeeController {
     }
 
     @GetMapping("pdf")
-    public String
+    public void pdf() throws JRException {
+//        File reportFile = new File("report/report_employee_list.jasper");
+//        JasperReport jasperReport = (JasperReport) JRLoader.loadObject(reportFile);
+        InputStream employeeReportStream
+                = getClass().getResourceAsStream("report/report_employee_list.jrxml");
+        JasperReport jasperReport
+                = JasperCompileManager.compileReport(employeeReportStream);
+        
+        if (jasperReport != null) {
+            JRBeanCollectionDataSource listDeps = new JRBeanCollectionDataSource(null);
+            JasperPrint jasperPrint = JasperFillManager.fillReport(
+                    jasperReport, null, listDeps);
+
+            JRPdfExporter exporter = new JRPdfExporter();
+            exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+            exporter.setExporterOutput(
+                    new SimpleOutputStreamExporterOutput("employeeReport.pdf"));
+
+            SimplePdfReportConfiguration reportConfig
+                    = new SimplePdfReportConfiguration();
+            reportConfig.setSizePageToContent(true);
+            reportConfig.setForceLineBreakPolicy(false);
+
+            SimplePdfExporterConfiguration exportConfig
+                    = new SimplePdfExporterConfiguration();
+            exportConfig.setMetadataAuthor("baeldung");
+            exportConfig.setEncrypted(true);
+            exportConfig.setAllowedPermissionsHint("PRINTING");
+
+            exporter.setConfiguration(reportConfig);
+            exporter.setConfiguration(exportConfig);
+
+            exporter.exportReport();
+        }
+    }
 }
