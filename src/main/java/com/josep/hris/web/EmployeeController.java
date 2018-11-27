@@ -3,15 +3,10 @@ package com.josep.hris.web;
 import com.josep.hris.entity.Employee;
 import com.josep.hris.helpers.Paginate;
 import com.josep.hris.repository.EmployeePagingRepository;
+import com.josep.hris.repository.EmployeeRepository;
 import com.josep.hris.service.AuthService;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import net.sf.jasperreports.engine.export.JRPdfExporter;
-import net.sf.jasperreports.engine.util.JRLoader;
-import net.sf.jasperreports.export.SimpleExporterInput;
-import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
-import net.sf.jasperreports.export.SimplePdfExporterConfiguration;
-import net.sf.jasperreports.export.SimplePdfReportConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,10 +16,15 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.io.File;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequestMapping("employee")
@@ -34,6 +34,9 @@ public class EmployeeController {
 
     @Autowired
     private EmployeePagingRepository employeePaging;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
     @GetMapping("/")
     public String index(
@@ -46,13 +49,13 @@ public class EmployeeController {
 
         Sort sortQuery = new Sort(Sort.Direction.ASC, "id");
         if (sort != null) {
-            if ("asc".equals(sortType.toLowerCase()))
+            if ("asc".equalsIgnoreCase(sortType))
                 sortQuery = new Sort(Sort.Direction.ASC, sort);
             else
                 sortQuery = new Sort(Sort.Direction.DESC, sort);
         }
 
-        Page<Employee> employees = employeePaging.findAll(new PageRequest((page-1), size, sortQuery));
+        Page<Employee> employees = employeePaging.findAll(PageRequest.of((page-1), size, sortQuery));
         Paginate paginate = new Paginate(page, employees.getTotalPages(), employees.getTotalElements());
 
         model.addAttribute("auth", auth.getIdentity(principal));
@@ -65,39 +68,19 @@ public class EmployeeController {
     }
 
     @GetMapping("pdf")
-    public void pdf() throws JRException {
-//        File reportFile = new File("report/report_employee_list.jasper");
-//        JasperReport jasperReport = (JasperReport) JRLoader.loadObject(reportFile);
-        InputStream employeeReportStream
-                = getClass().getResourceAsStream("report/report_employee_list.jrxml");
-        JasperReport jasperReport
-                = JasperCompileManager.compileReport(employeeReportStream);
-        
-        if (jasperReport != null) {
-            JRBeanCollectionDataSource listDeps = new JRBeanCollectionDataSource(null);
-            JasperPrint jasperPrint = JasperFillManager.fillReport(
-                    jasperReport, null, listDeps);
+    @ResponseBody
+    public void pdf(HttpServletResponse response) throws JRException, IOException {
+        Map<String,Object> params = new HashMap<>();
+        params.put("TITLE", "PDF Employee List");
+        InputStream employeeReportStream = getClass().getResourceAsStream("/report/report_employee_list.jrxml");
+        JasperReport jasperReport = JasperCompileManager.compileReport(employeeReportStream);
+        JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource(employeeRepository.findAll());
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, ds);
 
-            JRPdfExporter exporter = new JRPdfExporter();
-            exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
-            exporter.setExporterOutput(
-                    new SimpleOutputStreamExporterOutput("employeeReport.pdf"));
+        response.setContentType("application/x-pdf");
+        response.setHeader("Content-disposition", "inline; filename=helloWorldReport.pdf");
 
-            SimplePdfReportConfiguration reportConfig
-                    = new SimplePdfReportConfiguration();
-            reportConfig.setSizePageToContent(true);
-            reportConfig.setForceLineBreakPolicy(false);
-
-            SimplePdfExporterConfiguration exportConfig
-                    = new SimplePdfExporterConfiguration();
-            exportConfig.setMetadataAuthor("baeldung");
-            exportConfig.setEncrypted(true);
-            exportConfig.setAllowedPermissionsHint("PRINTING");
-
-            exporter.setConfiguration(reportConfig);
-            exporter.setConfiguration(exportConfig);
-
-            exporter.exportReport();
-        }
+        final OutputStream outStream = response.getOutputStream();
+        JasperExportManager.exportReportToPdfStream(jasperPrint, outStream);
     }
 }

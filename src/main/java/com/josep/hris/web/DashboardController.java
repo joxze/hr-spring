@@ -1,6 +1,5 @@
 package com.josep.hris.web;
 
-import com.josep.hris.entity.Users;
 import com.josep.hris.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
