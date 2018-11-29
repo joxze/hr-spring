@@ -7,6 +7,9 @@ import com.josep.hris.repository.EmployeeRepository;
 import com.josep.hris.service.AuthService;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
+import net.sf.jasperreports.export.SimpleExporterInput;
+import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -38,7 +41,7 @@ public class EmployeeController {
     @Autowired
     private EmployeeRepository employeeRepository;
 
-    @GetMapping("/")
+    @GetMapping("")
     public String index(
             @RequestParam(value = "size", defaultValue = "10", required = false) int size,
             @RequestParam(value = "page", defaultValue = "1", required = false) int page,
@@ -71,16 +74,30 @@ public class EmployeeController {
     @ResponseBody
     public void pdf(HttpServletResponse response) throws JRException, IOException {
         Map<String,Object> params = new HashMap<>();
-        params.put("TITLE", "PDF Employee List");
-        InputStream employeeReportStream = getClass().getResourceAsStream("/report/report_employee_list.jrxml");
+        InputStream employeeReportStream = getClass().getResourceAsStream("/report/report_employee_list_pdf.jrxml");
         JasperReport jasperReport = JasperCompileManager.compileReport(employeeReportStream);
         JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource(employeeRepository.findAll());
         JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, ds);
-
         response.setContentType("application/x-pdf");
-        response.setHeader("Content-disposition", "inline; filename=helloWorldReport.pdf");
-
+        response.setHeader("Content-disposition", "inline; filename=employee-list.pdf");
         final OutputStream outStream = response.getOutputStream();
         JasperExportManager.exportReportToPdfStream(jasperPrint, outStream);
+    }
+
+    @GetMapping("xls")
+    @ResponseBody
+    public void xls(HttpServletResponse response) throws JRException, IOException {
+        Map<String,Object> params = new HashMap<>();
+        InputStream employeeReportStream = getClass().getResourceAsStream("/report/report_employee_list_xlsx.jrxml");
+        JasperReport jasperReport = JasperCompileManager.compileReport(employeeReportStream);
+        JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource(employeeRepository.findAll());
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, ds);
+        response.setHeader("Content-Disposition", "attachment; filename=employee-list.xlsx");
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        JRXlsxExporter xlsExporter = new JRXlsxExporter(DefaultJasperReportsContext.getInstance());
+        xlsExporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+        xlsExporter.setExporterOutput(new SimpleOutputStreamExporterOutput(response.getOutputStream()));
+        xlsExporter.exportReport();
+
     }
 }

@@ -11,6 +11,10 @@
 <div th:replace="fragments/header :: header"/>
 
 <div class="container">
+    <div class="form-group">
+        <a th:href="@{/employee/pdf}" class="btn btn-primary">Download PDF</a>
+        <a th:href="@{/employee/xls}" class="btn btn-primary">Download XLS</a>
+    </div>
     <table class="table table-bordered table-hover">
         <thead>
             <th>
