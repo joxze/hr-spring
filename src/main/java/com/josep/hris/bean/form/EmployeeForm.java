@@ -1,20 +1,18 @@
-package com.josep.hris.entity;
+package com.josep.hris.bean.form;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
-import javax.persistence.*;
+
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.util.Date;
 
-@Entity
 @Getter
 @Setter
-public class Employee {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+public class EmployeeForm {
     @Size(max = 50)
     private String nik;
 

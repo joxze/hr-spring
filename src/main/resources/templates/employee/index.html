@@ -12,6 +12,7 @@
 
 <div class="container">
     <div class="form-group">
+        <a th:href="@{/employee/create}" class="btn btn-primary">Add Employee</a>
         <a th:href="@{/employee/pdf}" class="btn btn-primary">Download PDF</a>
         <a th:href="@{/employee/xls}" class="btn btn-primary">Download XLS</a>
     </div>
@@ -65,6 +66,7 @@
                     Join Date <i class="fa fa-sort-desc"></i>
                 </a>
             </th>
+            <th></th>
         </thead>
         <tbody>
         <th:block th:each="employee : ${employees}">
@@ -73,6 +75,11 @@
                 <td th:text="${employee.fullName}"></td>
                 <td th:text="${employee.address}"></td>
                 <td th:text="${#dates.format(employee.joinDate, 'dd-MMM-yyyy')}"></td>
+                <td>
+                    <a th:href="@{'/employee/detail/'+${employee.id}}">Detail</a>
+                    <a th:href="@{'/employee/detail/'+${employee.id}}">Edit</a>
+                    <a th:href="@{'/employee/detail/'+${employee.id}}">Delete</a>
+                </td>
             </tr>
         </th:block>
         </tbody>

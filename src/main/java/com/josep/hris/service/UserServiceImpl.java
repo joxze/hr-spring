@@ -27,12 +27,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void save(RegistrationForm registrationForm) {
-//        Users users = new Users();
-//        users.setUsername(registrationForm.getUsername());
-//        if (registrationForm.getPassword() != null)
-//            users.setPassword(bCryptPasswordEncoder.encode(registrationForm.getPassword()));
-//        users.setRoles(new HashSet<>(roleRepository.findAll()));
-//        userRepository.save(users);
+        Users users = new Users();
+        users.setUsername(registrationForm.getUsername());
+        if (registrationForm.getPassword() != null)
+            users.setPassword(bCryptPasswordEncoder.encode(registrationForm.getPassword()));
+        users.setRoles(new HashSet<>(roleRepository.findAll()));
+        userRepository.save(users);
     }
 
     @Override

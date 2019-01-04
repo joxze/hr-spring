@@ -26,6 +26,19 @@
                 <input type="password" id="passwordConfrim" th:field="*{passwordConfrim}" th:class="${#fields.hasErrors('passwordConfrim')} ? 'form-control is-invalid' : 'form-control'">
                 <span class="error" th:if="${#fields.hasErrors('passwordConfrim')}" th:errors="*{passwordConfrim}"></span>
             </div>
+
+            <!--company -->
+            <div class="form-group">
+                <label for="username" class="form-control-label">Company Name</label>
+                <input type="text" id="username" th:field="*{username}" th:class="${#fields.hasErrors('username')} ? 'form-control  is-invalid' : 'form-control'">
+                <span class="error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
+            </div>
+            <div class="form-group">
+                <label for="username" class="form-control-label">Company Address</label>
+                <input type="text" id="username" th:field="*{username}" th:class="${#fields.hasErrors('username')} ? 'form-control  is-invalid' : 'form-control'">
+                <span class="error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
+            </div>
+
             <div class="form-group">
                 <button type="submit" class="btn btn-primary">Register</button>
             </div>

@@ -1,10 +1,12 @@
 package com.josep.hris.web;
 
+import com.josep.hris.bean.form.EmployeeForm;
 import com.josep.hris.entity.Employee;
 import com.josep.hris.helpers.Paginate;
 import com.josep.hris.repository.EmployeePagingRepository;
 import com.josep.hris.repository.EmployeeRepository;
 import com.josep.hris.service.AuthService;
+import com.josep.hris.service.EmployeeService;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
@@ -16,10 +18,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -39,7 +39,7 @@ public class EmployeeController {
     private EmployeePagingRepository employeePaging;
 
     @Autowired
-    private EmployeeRepository employeeRepository;
+    private EmployeeService employeeService;
 
     @GetMapping("")
     public String index(
@@ -70,13 +70,26 @@ public class EmployeeController {
         return "employee/index";
     }
 
+    @GetMapping("create")
+    public String create(Model model) {
+        EmployeeForm employee = new EmployeeForm();
+        model.addAttribute("employee", employee);
+        return "employee/create";
+    }
+
+    @PostMapping("create")
+    public String doCreate(@ModelAttribute("employee") EmployeeForm employeeForm, Model model, BindingResult result) {
+
+        return "employee/create";
+    }
+
     @GetMapping("pdf")
     @ResponseBody
     public void pdf(HttpServletResponse response) throws JRException, IOException {
         Map<String,Object> params = new HashMap<>();
         InputStream employeeReportStream = getClass().getResourceAsStream("/report/report_employee_list_pdf.jrxml");
         JasperReport jasperReport = JasperCompileManager.compileReport(employeeReportStream);
-        JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource(employeeRepository.findAll());
+        JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource(employeeService.findAll());
         JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, ds);
         response.setContentType("application/x-pdf");
         response.setHeader("Content-disposition", "inline; filename=employee-list.pdf");
@@ -90,7 +103,7 @@ public class EmployeeController {
         Map<String,Object> params = new HashMap<>();
         InputStream employeeReportStream = getClass().getResourceAsStream("/report/report_employee_list_xlsx.jrxml");
         JasperReport jasperReport = JasperCompileManager.compileReport(employeeReportStream);
-        JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource(employeeRepository.findAll());
+        JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource(employeeService.findAll());
         JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, ds);
         response.setHeader("Content-Disposition", "attachment; filename=employee-list.xlsx");
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");

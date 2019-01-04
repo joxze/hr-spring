@@ -31,8 +31,10 @@ public class UsersController {
     @PostMapping("/registration")
     public String postRegistration(@ModelAttribute("users") RegistrationForm users, Model model, BindingResult result)
     {
+        System.out.println(users.getUsername());
         validator.validate(users, result);
         userService.save(users);
+        System.out.println(users);
         return "redirect:login";
     }
 
