@@ -17,4 +17,6 @@ public class HrisApplication extends SpringBootServletInitializer {
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(HrisApplication.class);
     }
+
+
 }

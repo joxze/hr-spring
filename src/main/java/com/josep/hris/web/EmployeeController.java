@@ -20,6 +20,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -27,6 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.Principal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -34,9 +36,6 @@ import java.util.Map;
 public class EmployeeController {
     @Autowired
     private AuthService auth;
-
-    @Autowired
-    private EmployeePagingRepository employeePaging;
 
     @Autowired
     private EmployeeService employeeService;
@@ -58,7 +57,7 @@ public class EmployeeController {
                 sortQuery = new Sort(Sort.Direction.DESC, sort);
         }
 
-        Page<Employee> employees = employeePaging.findAll(PageRequest.of((page-1), size, sortQuery));
+        Page<Employee> employees = employeeService.findAll(PageRequest.of((page-1), size, sortQuery));
         Paginate paginate = new Paginate(page, employees.getTotalPages(), employees.getTotalElements());
 
         model.addAttribute("auth", auth.getIdentity(principal));
@@ -79,8 +78,16 @@ public class EmployeeController {
 
     @PostMapping("create")
     public String doCreate(@ModelAttribute("employee") EmployeeForm employeeForm, Model model, BindingResult result) {
-
         return "employee/create";
+    }
+
+    @DeleteMapping("/{id}")
+    public String delete(@PathVariable Long id, RedirectAttributes red) {
+        Employee employee = employeeService.delete(id);
+        if (employee != null) {
+        }
+
+        return "redirect: ";
     }
 
     @GetMapping("pdf")
@@ -89,7 +96,7 @@ public class EmployeeController {
         Map<String,Object> params = new HashMap<>();
         InputStream employeeReportStream = getClass().getResourceAsStream("/report/report_employee_list_pdf.jrxml");
         JasperReport jasperReport = JasperCompileManager.compileReport(employeeReportStream);
-        JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource(employeeService.findAll());
+        JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource((List<Employee>) employeeService.findAll());
         JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, ds);
         response.setContentType("application/x-pdf");
         response.setHeader("Content-disposition", "inline; filename=employee-list.pdf");
@@ -103,7 +110,7 @@ public class EmployeeController {
         Map<String,Object> params = new HashMap<>();
         InputStream employeeReportStream = getClass().getResourceAsStream("/report/report_employee_list_xlsx.jrxml");
         JasperReport jasperReport = JasperCompileManager.compileReport(employeeReportStream);
-        JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource(employeeService.findAll());
+        JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource((List<Employee>) employeeService.findAll());
         JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, ds);
         response.setHeader("Content-Disposition", "attachment; filename=employee-list.xlsx");
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
